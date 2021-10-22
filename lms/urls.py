@@ -1017,3 +1017,9 @@ if getattr(settings, 'PROVIDER_STATES_URL', None):
             name='courseware_xblock_handler_provider_state',
         )
     ]
+
+# save_for_later API urls
+if settings.ENABLE_SAVE_FOR_LATER:
+    urlpatterns += [
+        url(r'', include('lms.djangoapps.save_for_later.urls')),
+    ]

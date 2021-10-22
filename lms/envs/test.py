@@ -599,3 +599,6 @@ RESET_PASSWORD_TOKEN_VALIDATE_API_RATELIMIT = '2/m'
 RESET_PASSWORD_API_RATELIMIT = '2/m'
 
 CORS_ORIGIN_WHITELIST = ['https://sandbox.edx.org']
+
+# enable /api/v1/save/course/ api for testing
+ENABLE_SAVE_FOR_LATER = True
