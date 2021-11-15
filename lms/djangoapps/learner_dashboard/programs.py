@@ -149,8 +149,8 @@ class ProgramDetailsFragmentView(EdxFragmentView):
             'credit_pathways': credit_pathways,
             'program_discussions_enabled': program_discussion_lti.discussions_is_enabled,
             'discussion_fragment': {
-                'enabled' : program_discussion_lti.is_enabled_and_configured,
-                'iframe'  : program_discussion_lti.render_discussions_iframe()
+                'enabled': program_discussion_lti.is_enabled_and_configured,
+                'iframe': program_discussion_lti.render_discussions_iframe()
             }
         }
 
