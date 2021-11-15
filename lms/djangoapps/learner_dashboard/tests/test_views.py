@@ -21,7 +21,7 @@ from openedx.core.djangoapps.discussions.models import ProgramDiscussionsConfigu
 
 
 @override_waffle_flag(ENABLE_PROGRAM_DISCUSSIONS, active=True)
-class TestProgramDetails(SharedModuleStoreTestCase, ProgramCacheMixin):
+class TestProgramDiscussionIframeView(SharedModuleStoreTestCase, ProgramCacheMixin):
     """Unit tests for the program details page."""
     program_uuid = str(uuid4())
     password = 'test'
@@ -53,7 +53,7 @@ class TestProgramDetails(SharedModuleStoreTestCase, ProgramCacheMixin):
         """
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data, {'iframe': "", 'enabled': True})
+        self.assertEqual(response.data, {'iframe': "", 'enabled': False})
 
     def test_if_user_is_not_authenticated(self):
         """

@@ -108,7 +108,7 @@ class ProgramDiscussionIframeView(APIView, ProgramSpecificViewMixin):
         return Response(
             {
                 'iframe': program_discussion_lti.render_discussions_iframe(),
-                'enabled': program_discussion_lti.enabled
+                'enabled': program_discussion_lti.is_enabled_and_configured
             },
             status=status.HTTP_200_OK
         )

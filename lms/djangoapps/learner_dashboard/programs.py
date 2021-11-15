@@ -147,8 +147,11 @@ class ProgramDetailsFragmentView(EdxFragmentView):
             'certificate_data': certificate_data,
             'industry_pathways': industry_pathways,
             'credit_pathways': credit_pathways,
-            'program_discussions_enabled': program_discussion_lti.enabled,
-            'discussion_fragment': program_discussion_lti.render_discussions_iframe()
+            'program_discussions_enabled': program_discussion_lti.discussions_is_enabled,
+            'discussion_fragment': {
+                'enabled' : program_discussion_lti.is_enabled_and_configured,
+                'iframe'  : program_discussion_lti.render_discussions_iframe()
+            }
         }
 
         html = render_to_string('learner_dashboard/program_details_fragment.html', context)
@@ -173,9 +176,10 @@ class ProgramDiscussionLTI:
     def __init__(self, program_uuid, request):
         self.program_uuid = program_uuid
         self.request = request
-        self.enabled = program_discussions_is_enabled()
+        self.discussions_is_enabled = program_discussions_is_enabled()
+        self.discussions_configuration = self.get_program_discussion_configuration()
 
-    def get_program_discussion_configuration(self):
+    def get_program_discussion_configuration(self) -> ProgramDiscussionsConfiguration:
         return ProgramDiscussionsConfiguration.objects.filter(
             program_uuid=self.program_uuid
         ).first()
@@ -187,19 +191,21 @@ class ProgramDiscussionLTI:
     def _get_result_sourcedid(self, resource_link_id) -> str:
         return f'{self.program_uuid}:{resource_link_id}:{self.request.user.id}'
 
-    def get_user_role(self):
+    def get_user_roles(self) -> str:
         """
-        Returns the given user's role
+        Returns comma-separated roles for the given user
         """
-        if GlobalStaff().has_user(self.request.user):
-            return self.ADMIN_ROLE
-        return self.DEFAULT_ROLE
+        basic_role = self.DEFAULT_ROLE
 
-    def _get_lti_embed_code(self, program_discussions_configuration) -> str:
+        if GlobalStaff().has_user(self.request.user):
+            basic_role = self.ADMIN_ROLE
+
+        all_roles = [basic_role]
+        return ','.join(all_roles)
+
+    def _get_lti_embed_code(self) -> str:
         """
         Returns the LTI embed code for embedding in the program discussions tab
-        Args:
-            program_discussions_configuration (ProgramDiscussionsConfiguration): ProgramDiscussionsConfiguration object.
         Returns:
             HTML code to embed LTI in program page.
         """
@@ -208,24 +214,28 @@ class ProgramDiscussionLTI:
 
         return lti_embed(
             html_element_id='lti-tab-launcher',
-            lti_consumer=program_discussions_configuration.lti_configuration.get_lti_consumer(),
+            lti_consumer=self.discussions_configuration.lti_configuration.get_lti_consumer(),
             resource_link_id=resource_link_id,
             user_id=str(self.request.user.id),
-            roles=self.get_user_role(),
+            roles=self.get_user_roles(),
             context_id=self.program_uuid,
             context_title=self.program_uuid,
             context_label=self.program_uuid,
             result_sourcedid=result_sourcedid
         )
 
+    @property
+    def is_enabled_and_configured(self):
+        return bool(self.discussions_is_enabled and self.discussions_configuration)
+
     def render_discussions_iframe(self) -> str:
         """
         Returns the program discussion fragment if program discussions configuration exists for a program uuid
         """
-        program_discussions_configuration = self.get_program_discussion_configuration()
-        if not self.enabled or not program_discussions_configuration:
+        if not self.discussions_is_enabled or not self.discussions_configuration:
             return ''
-        lti_embed_html = self._get_lti_embed_code(program_discussions_configuration)
+
+        lti_embed_html = self._get_lti_embed_code()
         fragment = Fragment(
             HTML(
                 """
