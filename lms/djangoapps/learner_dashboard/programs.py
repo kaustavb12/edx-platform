@@ -147,10 +147,10 @@ class ProgramDetailsFragmentView(EdxFragmentView):
             'certificate_data': certificate_data,
             'industry_pathways': industry_pathways,
             'credit_pathways': credit_pathways,
-            'program_discussions_enabled': program_discussion_lti.discussions_is_enabled,
+            'program_discussions_enabled': program_discussion_lti.is_enabled,
             'discussion_fragment': {
-                'enabled': program_discussion_lti.is_enabled_and_configured,
-                'iframe': program_discussion_lti.render_discussions_iframe()
+                'enabled': program_discussion_lti.is_configured,
+                'iframe': program_discussion_lti.render_iframe()
             }
         }
 
@@ -168,7 +168,7 @@ class ProgramDetailsFragmentView(EdxFragmentView):
 
 class ProgramDiscussionLTI:
     """
-      Render the program discussion iframe.
+      Encapsulates methods for discussion iframe rendering.
     """
     DEFAULT_ROLE = 'Student'
     ADMIN_ROLE = 'Administrator'
@@ -176,10 +176,13 @@ class ProgramDiscussionLTI:
     def __init__(self, program_uuid, request):
         self.program_uuid = program_uuid
         self.request = request
-        self.discussions_is_enabled = program_discussions_is_enabled()
-        self.discussions_configuration = self.get_program_discussion_configuration()
+        self.is_enabled = program_discussions_is_enabled()
+        self.configuration = self.get_configuration()
 
-    def get_program_discussion_configuration(self) -> ProgramDiscussionsConfiguration:
+    def get_configuration(self) -> ProgramDiscussionsConfiguration:
+        """
+        Returns ProgramDiscussionsConfiguration object with respect to program_uuid
+        """
         return ProgramDiscussionsConfiguration.objects.filter(
             program_uuid=self.program_uuid
         ).first()
@@ -214,7 +217,7 @@ class ProgramDiscussionLTI:
 
         return lti_embed(
             html_element_id='lti-tab-launcher',
-            lti_consumer=self.discussions_configuration.lti_configuration.get_lti_consumer(),
+            lti_consumer=self.configuration.lti_configuration.get_lti_consumer(),
             resource_link_id=resource_link_id,
             user_id=str(self.request.user.id),
             roles=self.get_user_roles(),
@@ -225,14 +228,14 @@ class ProgramDiscussionLTI:
         )
 
     @property
-    def is_enabled_and_configured(self):
-        return bool(self.discussions_is_enabled and self.discussions_configuration)
+    def is_configured(self):
+        return bool(self.is_enabled and self.configuration)
 
-    def render_discussions_iframe(self) -> str:
+    def render_iframe(self) -> str:
         """
         Returns the program discussion fragment if program discussions configuration exists for a program uuid
         """
-        if not self.discussions_is_enabled or not self.discussions_configuration:
+        if not self.is_configured:
             return ''
 
         lti_embed_html = self._get_lti_embed_code()

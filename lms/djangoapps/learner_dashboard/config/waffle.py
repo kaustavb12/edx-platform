@@ -9,6 +9,8 @@ from edx_toggles.toggles import WaffleFlag
 # .. toggle_implementation: WaffleFlag
 # .. toggle_default: False
 # .. toggle_description: Waffle flag to enable new Program discussion experience for course.
+#    This flag is used to decide weather we need to render program data in "tab" view or simple view.
+#    In the new tab view, we have tabs like "journey", "live", "discussions"
 # .. toggle_use_cases: temporary, open_edx
 # .. toggle_creation_date: 2021-08-25
 # .. toggle_target_removal_date: 2021-12-31
