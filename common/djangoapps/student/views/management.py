@@ -517,9 +517,10 @@ def activate_account(request, key):
     activation_message_type = None
 
     invalid_message = HTML(_(
-        '{html_start}Your account could not be activated{html_end}'
+        '{html_start}Your account could not be {heading_text}{html_end}'
         'Something went wrong, please <a href="{support_url}">contact support</a> to resolve this issue.'
     )).format(
+        heading_text='verified' if settings.MARKETING_EMAILS_OPT_IN else 'activated',
         support_url=configuration_helpers.get_value(
             'ACTIVATION_EMAIL_SUPPORT_LINK', settings.ACTIVATION_EMAIL_SUPPORT_LINK
         ) or settings.SUPPORT_SITE_LINK,
@@ -549,7 +550,8 @@ def activate_account(request, key):
             activation_message_type = 'info'
             messages.info(
                 request,
-                HTML(_('{html_start}This account has already been activated.{html_end}')).format(
+                HTML(_('{html_start}This account has already been {body_text}.{html_end}')).format(
+                    body_text='verified' if settings.MARKETING_EMAILS_OPT_IN else 'activated',
                     html_start=HTML('<p class="message-title">'),
                     html_end=HTML('</p>'),
                 ),
@@ -558,7 +560,7 @@ def activate_account(request, key):
         else:
             registration.activate()
             # Success message for logged in users.
-            message = _('{html_start}Success{html_end} You have activated your account.')
+            message = _('{html_start}Success{html_end} You have {body_text} your account.')
 
             tracker.emit(
                 USER_ACCOUNT_ACTIVATED,
@@ -571,7 +573,7 @@ def activate_account(request, key):
             if not request.user.is_authenticated:
                 # Success message for logged out users
                 message = _(
-                    '{html_start}Success! You have activated your account.{html_end}'
+                    '{html_start}Success! You have {body_text} your account.{html_end}'
                     'You will now receive email updates and alerts from us related to'
                     ' the courses you are enrolled in. Sign In to continue.'
                 )
@@ -581,6 +583,7 @@ def activate_account(request, key):
             messages.success(
                 request,
                 HTML(message).format(
+                    body_text='verified' if settings.MARKETING_EMAILS_OPT_IN else 'activated',
                     html_start=HTML('<p class="message-title">'),
                     html_end=HTML('</p>'),
                 ),
