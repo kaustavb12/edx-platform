@@ -516,11 +516,13 @@ def activate_account(request, key):
     monitoring_utils.set_custom_attribute('student_activate_account', 'lms')
     activation_message_type = None
 
+    activated_or_verified = 'verified' if settings.MARKETING_EMAILS_OPT_IN else 'activated'
+
     invalid_message = HTML(_(
-        '{html_start}Your account could not be {heading_text}{html_end}'
+        '{html_start}Your account could not be {activated_or_verified}{html_end}'
         'Something went wrong, please <a href="{support_url}">contact support</a> to resolve this issue.'
     )).format(
-        heading_text='verified' if settings.MARKETING_EMAILS_OPT_IN else 'activated',
+        activated_or_verified=activated_or_verified,
         support_url=configuration_helpers.get_value(
             'ACTIVATION_EMAIL_SUPPORT_LINK', settings.ACTIVATION_EMAIL_SUPPORT_LINK
         ) or settings.SUPPORT_SITE_LINK,
@@ -550,8 +552,8 @@ def activate_account(request, key):
             activation_message_type = 'info'
             messages.info(
                 request,
-                HTML(_('{html_start}This account has already been {body_text}.{html_end}')).format(
-                    body_text='verified' if settings.MARKETING_EMAILS_OPT_IN else 'activated',
+                HTML(_('{html_start}This account has already been {activated_or_verified}.{html_end}')).format(
+                    activated_or_verified=activated_or_verified,
                     html_start=HTML('<p class="message-title">'),
                     html_end=HTML('</p>'),
                 ),
@@ -560,7 +562,7 @@ def activate_account(request, key):
         else:
             registration.activate()
             # Success message for logged in users.
-            message = _('{html_start}Success{html_end} You have {body_text} your account.')
+            message = _('{html_start}Success{html_end} You have {activated_or_verified} your account.')
 
             tracker.emit(
                 USER_ACCOUNT_ACTIVATED,
@@ -573,7 +575,7 @@ def activate_account(request, key):
             if not request.user.is_authenticated:
                 # Success message for logged out users
                 message = _(
-                    '{html_start}Success! You have {body_text} your account.{html_end}'
+                    '{html_start}Success! You have {activated_or_verified} your account.{html_end}'
                     'You will now receive email updates and alerts from us related to'
                     ' the courses you are enrolled in. Sign In to continue.'
                 )
@@ -583,7 +585,7 @@ def activate_account(request, key):
             messages.success(
                 request,
                 HTML(message).format(
-                    body_text='verified' if settings.MARKETING_EMAILS_OPT_IN else 'activated',
+                    activated_or_verified=activated_or_verified,
                     html_start=HTML('<p class="message-title">'),
                     html_end=HTML('</p>'),
                 ),

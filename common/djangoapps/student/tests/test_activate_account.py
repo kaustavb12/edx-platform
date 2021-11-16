@@ -166,6 +166,22 @@ class TestActivateAccount(TestCase):
         self.assertRedirects(response, login_page_url)
         self.assertContains(response, 'Your account could not be activated')
 
+    @override_settings(MARKETING_EMAILS_OPT_IN=True)
+    def test_account_verification_notification_on_logistration(self):
+        """
+        Verify that logistration page displays success/error/info messages
+        about account verification instead of activation when MARKETING_EMAILS_OPT_IN
+        is set to True.
+        """
+        response = self.client.get(reverse('activate', args=[self.registration.activation_key]), follow=True)
+        self.assertContains(response, 'Success! You have verified your account.')
+
+        response = self.client.get(reverse('activate', args=[self.registration.activation_key]), follow=True)
+        self.assertContains(response, 'This account has already been verified.')
+
+        response = self.client.get(reverse('activate', args=[uuid4().hex]), follow=True)
+        self.assertContains(response, 'Your account could not be verified')
+
     @override_settings(LOGIN_REDIRECT_WHITELIST=['localhost:1991'])
     @override_settings(FEATURES={**FEATURES_WITH_AUTHN_MFE_ENABLED, 'ENABLE_ENTERPRISE_INTEGRATION': True})
     @override_waffle_flag(REDIRECT_TO_AUTHN_MICROFRONTEND, active=True)
