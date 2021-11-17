@@ -12,7 +12,11 @@ from .views.enrollments import EnrollmentSupportListView, EnrollmentSupportView
 from .views.feature_based_enrollments import FeatureBasedEnrollmentsSupportView, FeatureBasedEnrollmentSupportAPIView
 from .views.index import index
 from .views.manage_user import ManageUserDetailView, ManageUserSupportView
-from .views.program_enrollments import LinkProgramEnrollmentSupportView, ProgramEnrollmentsInspectorView
+from .views.program_enrollments import (
+    LinkProgramEnrollmentSupportView,
+    LinkProgramEnrollmentSupportAPIView,
+    ProgramEnrollmentsInspectorView
+)
 from .views.sso_records import SsoView
 
 COURSE_ENTITLEMENTS_VIEW = EntitlementSupportView.as_view()
@@ -45,9 +49,13 @@ urlpatterns = [
         FeatureBasedEnrollmentSupportAPIView.as_view(),
         name="feature_based_enrollment_details"
     ),
-    re_path(r'link_program_enrollments/?$', LinkProgramEnrollmentSupportView.as_view(),
-            name='link_program_enrollments'),
-    re_path(
+    url(r'link_program_enrollments/?$', LinkProgramEnrollmentSupportView.as_view(), name='link_program_enrollments'),
+    url(
+        r'link_program_enrollments_details/?$',
+        LinkProgramEnrollmentSupportAPIView.as_view(),
+        name='link_program_enrollments_details'
+    ),
+    url(
         r'program_enrollments_inspector/?$',
         ProgramEnrollmentsInspectorView.as_view(),
         name='program_enrollments_inspector'

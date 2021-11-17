@@ -1189,3 +1189,124 @@ class FeatureBasedEnrollmentSupportApiViewTests(SupportViewTestCase):
         )
         data = json.loads(response.content.decode('utf-8'))
         assert data == {}
+
+
+class LinkProgramEnrollmentSupportAPIViewTests(SupportViewTestCase):
+    """
+    Tests for the link_program_enrollments support view.
+    """
+
+    def setUp(self):
+        """Make the user support staff. """
+        super().setUp()
+        self.url = reverse("support:link_program_enrollments_details")
+        SupportStaffRole().add_users(self.user)
+        self.program_uuid = str(uuid4())
+        self.text = '0001,user-0001\n0002,user-02'
+
+    def test_invalid_uuid(self):
+        response = self.client.post(self.url, data={
+            'program_uuid': 'notauuid',
+            'text': self.text,
+        })
+        msg = "Supplied program UUID 'notauuid' is not a valid UUID."
+        data = json.loads(response.content.decode('utf-8'))
+        assert data['errors'] == [msg]
+
+
+    def test_missing_parameter(self):
+        data = [
+            ('program_uuid', ''),
+            ('', 'text'),
+            ('', ''),
+        ]
+        error = (
+            "You must provide both a program uuid "
+            "and a series of lines with the format "
+            "'external_user_key,lms_username'."
+        )
+        for line in data:
+            response = self.client.post(self.url, data={
+                'program_uuid': line[0],
+                'text': line[1]
+            })
+            response_data = json.loads(response.content.decode('utf-8'))
+            assert response_data['errors'] == [error]
+
+    def test_junk_text(self, mocked_render):
+        text = 'alsdjflajsdflakjs'
+        response = self.client.post(self.url, data={
+            'program_uuid': self.program_uuid,
+            'text': text,
+        })
+        msg = "All linking lines must be in the format 'external_user_key,lms_username'"
+        response_data = json.loads(response.content.decode('utf-8'))
+        assert response_data['errors'] == [msg]
+
+
+    def _setup_user_from_username(self, username):
+        """
+        Setup a user from the passed in username.
+        If username passed in is falsy, return None
+        """
+        created_user = None
+        if username:
+            created_user = UserFactory(username=username, password=self.PASSWORD)
+        return created_user
+
+    def _setup_enrollments(self, external_user_key, linked_user=None):
+        """
+        Create enrollments for testing linking.
+        The enrollments can be create with already linked edX user.
+        """
+        program_enrollment = ProgramEnrollmentFactory.create(
+            external_user_key=external_user_key,
+            program_uuid=self.program_uuid,
+            user=linked_user
+        )
+        course_enrollment = None
+        if linked_user:
+            course_enrollment = CourseEnrollmentFactory.create(
+                course_id=self.course.id,
+                user=linked_user,
+                mode=CourseMode.MASTERS,
+                is_active=True
+            )
+        program_course_enrollment = ProgramCourseEnrollmentFactory.create(
+            program_enrollment=program_enrollment,
+            course_key=self.course.id,
+            course_enrollment=course_enrollment,
+            status='active'
+        )
+
+        return program_enrollment, program_course_enrollment
+
+    def test_linking_program_enrollment(self, username, original_username, mocked_render):
+        data = [
+            ('', None),
+            ('linked_user', None),
+            ('linked_user', 'original_user')
+        ]
+        external_user_key = '0001'
+        for data_line in data:
+            linked_user = self._setup_user_from_username(data_line[0])
+            original_user = self._setup_user_from_username(data_line[1])
+            program_enrollment, program_course_enrollment = self._setup_enrollments(
+                external_user_key,
+                original_user
+            )
+            response = self.client.post(self.url, data={
+                'program_uuid': self.program_uuid,
+                'text': external_user_key + ',' + username
+            })
+            response_data = json.loads(response.content.decode('utf-8'))
+            if username:
+                expected_success = f"('{external_user_key}', '{username}')"
+                assert response_data['successes'] == [expected_success]
+                program_enrollment.refresh_from_db()
+                assert program_enrollment.user == linked_user
+                program_course_enrollment.refresh_from_db()
+                assert program_course_enrollment.course_enrollment.user == linked_user
+            else:
+                error = "All linking lines must be in the format 'external_user_key,lms_username'"
+                assert response_data['errors'] == [error]
