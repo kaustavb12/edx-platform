@@ -15,7 +15,8 @@ from web_fragments.fragment import Fragment
 
 from common.djangoapps.student.roles import GlobalStaff
 from lms.djangoapps.commerce.utils import EcommerceService
-from lms.djangoapps.learner_dashboard.utils import FAKE_COURSE_KEY, program_discussions_is_enabled, strip_course_id
+from lms.djangoapps.learner_dashboard.utils import FAKE_COURSE_KEY, program_discussions_is_enabled, strip_course_id, \
+    masters_program_discussions_is_enabled
 from openedx.core.djangoapps.catalog.constants import PathwayType
 from openedx.core.djangoapps.catalog.utils import get_pathways
 from openedx.core.djangoapps.credentials.utils import get_credentials_records_url
@@ -177,6 +178,7 @@ class ProgramDiscussionLTI:
         self.program_uuid = program_uuid
         self.request = request
         self.is_enabled = program_discussions_is_enabled()
+        self.is_enabled_for_masters = masters_program_discussions_is_enabled()
         self.configuration = self.get_configuration()
 
     def get_configuration(self) -> ProgramDiscussionsConfiguration:

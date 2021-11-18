@@ -2,7 +2,6 @@
 Unit tests covering the program discussion iframe API.
 """
 
-
 from uuid import uuid4
 
 from django.urls import reverse, reverse_lazy
@@ -53,7 +52,14 @@ class TestProgramDiscussionIframeView(SharedModuleStoreTestCase, ProgramCacheMix
         """
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data, {'iframe': "", 'enabled': False})
+        expected_data = {
+            'enabled_for_masters': False,
+            'discussion': {
+                'iframe': "",
+                'enabled': False
+            }
+        }
+        self.assertEqual(response.data, expected_data)
 
     def test_if_user_is_not_authenticated(self):
         """
@@ -81,8 +87,8 @@ class TestProgramDiscussionIframeView(SharedModuleStoreTestCase, ProgramCacheMix
         discussion_config.save()
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
-        self.assertIsInstance(response.data['iframe'], Markup)
-        self.assertIn('iframe', str(response.data['iframe']),)
+        self.assertIsInstance(response.data['discussion']['iframe'], Markup)
+        self.assertIn('iframe', str(response.data['discussion']['iframe']), )
 
     def test_program_does_not_exist(self):
         """

@@ -86,15 +86,18 @@ class ProgramDiscussionIframeView(APIView, ProgramSpecificViewMixin):
     **Example**
 
         {
-            "iframe": "
-                        <iframe
-                            id='lti-tab-embed'
-                            style='width: 100%; min-height: 800px; border: none'
-                            srcdoc='{srcdoc}'
-                         >
-                        </iframe>
-                        ",
-            "enabled": false
+            'enabled_for_masters': True,
+            'discussion': {
+                "iframe": "
+                            <iframe
+                                id='lti-tab-embed'
+                                style='width: 100%; min-height: 800px; border: none'
+                                srcdoc='{srcdoc}'
+                             >
+                            </iframe>
+                            ",
+                "enabled": false
+            }
         }
 
 
@@ -106,9 +109,13 @@ class ProgramDiscussionIframeView(APIView, ProgramSpecificViewMixin):
         """ GET handler """
         program_discussion_lti = ProgramDiscussionLTI(program_uuid, request)
         return Response(
+
             {
-                'iframe': program_discussion_lti.render_iframe(),
-                'enabled': program_discussion_lti.is_configured
+                'enabled_for_masters': program_discussion_lti.is_enabled_for_masters,
+                'discussion': {
+                    'iframe': program_discussion_lti.render_iframe(),
+                    'enabled': program_discussion_lti.is_configured,
+                }
             },
             status=status.HTTP_200_OK
         )
