@@ -53,6 +53,7 @@ class TestCourseMetadataSerializer(SharedModuleStoreTestCase):
         }
 
 
+@ddt.ddt
 class TestOpenResponseMetadataSerializer(TestCase):
     """
     Tests for OpenResponseMetadataSerializer
@@ -60,7 +61,9 @@ class TestOpenResponseMetadataSerializer(TestCase):
     ora_data = {
         "display_name": "Week 1: Time Travel Paradoxes",
         "prompts": ["<p>In your own words, explain a famous time travel paradox</p>"],
-        "teams_enabled": False
+        "teams_enabled": False,
+        "text_response": None,
+        "file_upload_response": None,
     }
 
     def setUp(self):
@@ -76,6 +79,8 @@ class TestOpenResponseMetadataSerializer(TestCase):
             "name": self.ora_data['display_name'],
             "prompts": self.ora_data['prompts'],
             "type": "individual",
+            "textResponseConfig": "none",
+            "fileUploadResponseConfig": "none",
         }
 
     def test_team_ora(self):
@@ -87,7 +92,20 @@ class TestOpenResponseMetadataSerializer(TestCase):
             "name": self.ora_data['display_name'],
             "prompts": self.ora_data['prompts'],
             "type": "team",
+            "textResponseConfig": "none",
+            "fileUploadResponseConfig": "none",
         }
+
+    @ddt.unpack
+    @ddt.data((None, None), ('optional', 'optional'), ('required', 'required'))
+    def test_response_config(self, text_response, file_upload_response):
+        self.mock_ora_instance.text_response = text_response
+        self.mock_ora_instance.file_upload_response = file_upload_response
+
+        data = OpenResponseMetadataSerializer(self.mock_ora_instance).data
+
+        assert data['textResponseConfig'] == text_response or "none"
+        assert data['fileUploadResponseConfig'] == file_upload_response or "none"
 
 
 class TestSubmissionMetadataSerializer(TestCase):
