@@ -302,6 +302,7 @@ class TestProgramDetails(ProgramsApiConfigMixin, CatalogIntegrationMixin, Shared
         response = self.client.get(self.url)
         assert response.status_code == 404
 
+
 @override_waffle_flag(ENABLE_PROGRAM_DISCUSSIONS, active=True)
 class TestProgramDetailsFragmentView(SharedModuleStoreTestCase, ProgramCacheMixin, ProgramsApiConfigMixin):
     """Unit tests for the program details page."""
@@ -330,5 +331,5 @@ class TestProgramDetailsFragmentView(SharedModuleStoreTestCase, ProgramCacheMixi
         Test if programDiscussionEnabled and discussionFragment exist in html.
         """
         response = self.client.get(self.url)
-        self.assertContains(response,'programDiscussionEnabled: true',)
-        self.assertContains(response,'discussionFragment: {"enabled": false, "iframe": ""')
+        self.assertContains(response, 'programDiscussionEnabled: true',)
+        self.assertContains(response, 'discussionFragment: {"enabled": false, "iframe": ""')

@@ -26,6 +26,7 @@ def program_discussions_is_enabled():
     """
     return ENABLE_PROGRAM_DISCUSSIONS.is_enabled()
 
+
 def masters_program_discussions_is_enabled():
     """
     check if masters program discussion is enabled.
