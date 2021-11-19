@@ -6,7 +6,7 @@ from rest_framework import permissions, status
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
+from lms.djangoapps.learner_dashboard.utils import masters_program_tab_view_is_enabled
 from common.djangoapps.edxmako.shortcuts import render_to_response
 from lms.djangoapps.learner_dashboard.permissions import IsEnrolledInProgram
 from lms.djangoapps.learner_dashboard.programs import (
@@ -111,10 +111,10 @@ class ProgramDiscussionIframeView(APIView, ProgramSpecificViewMixin):
         return Response(
 
             {
-                'enabled_for_masters': program_discussion_lti.is_enabled_for_masters,
+                'enabled': masters_program_tab_view_is_enabled(),
                 'discussion': {
                     'iframe': program_discussion_lti.render_iframe(),
-                    'enabled': program_discussion_lti.is_configured,
+                    'configured': bool(program_discussion_lti.configuration),
                 }
             },
             status=status.HTTP_200_OK

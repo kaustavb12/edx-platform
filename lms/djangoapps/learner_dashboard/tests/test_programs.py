@@ -18,7 +18,7 @@ from xmodule.modulestore.tests.django_utils import SharedModuleStoreTestCase
 from xmodule.modulestore.tests.factories import CourseFactory as ModuleStoreCourseFactory
 
 from common.djangoapps.student.tests.factories import CourseEnrollmentFactory, UserFactory
-from lms.djangoapps.learner_dashboard.config.waffle import ENABLE_PROGRAM_DISCUSSIONS
+from lms.djangoapps.learner_dashboard.config.waffle import ENABLE_PROGRAM_TAB_VIEW
 from lms.djangoapps.program_enrollments.rest_api.v1.tests.test_views import ProgramCacheMixin
 from lms.envs.test import CREDENTIALS_PUBLIC_SERVICE_URL
 from openedx.core.djangoapps.catalog.constants import PathwayType
@@ -303,7 +303,7 @@ class TestProgramDetails(ProgramsApiConfigMixin, CatalogIntegrationMixin, Shared
         assert response.status_code == 404
 
 
-@override_waffle_flag(ENABLE_PROGRAM_DISCUSSIONS, active=True)
+@override_waffle_flag(ENABLE_PROGRAM_TAB_VIEW, active=True)
 class TestProgramDetailsFragmentView(SharedModuleStoreTestCase, ProgramCacheMixin, ProgramsApiConfigMixin):
     """Unit tests for the program details page."""
     program_uuid = str(uuid4())

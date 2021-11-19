@@ -2,7 +2,6 @@
 Fragments for rendering programs.
 """
 
-
 import json
 
 from django.contrib.sites.shortcuts import get_current_site
@@ -15,8 +14,8 @@ from web_fragments.fragment import Fragment
 
 from common.djangoapps.student.roles import GlobalStaff
 from lms.djangoapps.commerce.utils import EcommerceService
-from lms.djangoapps.learner_dashboard.utils import FAKE_COURSE_KEY, program_discussions_is_enabled, strip_course_id, \
-    masters_program_discussions_is_enabled
+from lms.djangoapps.learner_dashboard.utils import FAKE_COURSE_KEY, program_tab_view_is_enabled, strip_course_id
+
 from openedx.core.djangoapps.catalog.constants import PathwayType
 from openedx.core.djangoapps.catalog.utils import get_pathways
 from openedx.core.djangoapps.credentials.utils import get_credentials_records_url
@@ -148,9 +147,9 @@ class ProgramDetailsFragmentView(EdxFragmentView):
             'certificate_data': certificate_data,
             'industry_pathways': industry_pathways,
             'credit_pathways': credit_pathways,
-            'program_discussions_enabled': program_discussion_lti.is_enabled,
+            'program_discussions_enabled': program_tab_view_is_enabled(),
             'discussion_fragment': {
-                'enabled': program_discussion_lti.is_configured,
+                'enabled': bool(program_discussion_lti.configuration),
                 'iframe': program_discussion_lti.render_iframe()
             }
         }
@@ -177,8 +176,6 @@ class ProgramDiscussionLTI:
     def __init__(self, program_uuid, request):
         self.program_uuid = program_uuid
         self.request = request
-        self.is_enabled = program_discussions_is_enabled()
-        self.is_enabled_for_masters = masters_program_discussions_is_enabled()
         self.configuration = self.get_configuration()
 
     def get_configuration(self) -> ProgramDiscussionsConfiguration:
@@ -229,15 +226,11 @@ class ProgramDiscussionLTI:
             result_sourcedid=result_sourcedid
         )
 
-    @property
-    def is_configured(self):
-        return bool(self.is_enabled and self.configuration)
-
     def render_iframe(self) -> str:
         """
         Returns the program discussion fragment if program discussions configuration exists for a program uuid
         """
-        if not self.is_configured:
+        if not self.configuration:
             return ''
 
         lti_embed_html = self._get_lti_embed_code()

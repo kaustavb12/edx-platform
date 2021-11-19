@@ -12,14 +12,15 @@ from xmodule.modulestore.tests.django_utils import SharedModuleStoreTestCase
 from xmodule.modulestore.tests.factories import CourseFactory as ModuleStoreCourseFactory
 
 from common.djangoapps.student.tests.factories import UserFactory
-from lms.djangoapps.learner_dashboard.config.waffle import ENABLE_PROGRAM_DISCUSSIONS
+from lms.djangoapps.learner_dashboard.config.waffle import ENABLE_PROGRAM_TAB_VIEW, ENABLE_MASTERS_PROGRAM_TAB_VIEW
 from lms.djangoapps.program_enrollments.rest_api.v1.tests.test_views import ProgramCacheMixin
 from lms.djangoapps.program_enrollments.tests.factories import ProgramEnrollmentFactory
 from openedx.core.djangoapps.catalog.tests.factories import CourseFactory, CourseRunFactory, ProgramFactory
 from openedx.core.djangoapps.discussions.models import ProgramDiscussionsConfiguration
 
 
-@override_waffle_flag(ENABLE_PROGRAM_DISCUSSIONS, active=True)
+@override_waffle_flag(ENABLE_PROGRAM_TAB_VIEW, active=True)
+@override_waffle_flag(ENABLE_MASTERS_PROGRAM_TAB_VIEW, active=True)
 class TestProgramDiscussionIframeView(SharedModuleStoreTestCase, ProgramCacheMixin):
     """Unit tests for the program details page."""
     program_uuid = str(uuid4())
@@ -53,10 +54,10 @@ class TestProgramDiscussionIframeView(SharedModuleStoreTestCase, ProgramCacheMix
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         expected_data = {
-            'enabled_for_masters': False,
+            'enabled': True,
             'discussion': {
                 'iframe': "",
-                'enabled': False
+                'configured': False
             }
         }
         self.assertEqual(response.data, expected_data)
