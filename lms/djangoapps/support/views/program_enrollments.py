@@ -2,15 +2,11 @@
 Support tool for changing course enrollments.
 """
 
-
-import csv
-from uuid import UUID
-
-from edx_rest_framework_extensions.auth.jwt.authentication import JwtAuthentication
 from django.contrib.auth.models import User  # lint-amnesty, pylint: disable=imported-auth-user
 from django.db.models import Q
 from django.utils.decorators import method_decorator
 from django.views.generic import View
+from edx_rest_framework_extensions.auth.jwt.authentication import JwtAuthentication
 from rest_framework.generics import GenericAPIView
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.response import Response
@@ -79,8 +75,7 @@ class LinkProgramEnrollmentSupportView(View):
 
 class LinkProgramEnrollmentSupportAPIView(GenericAPIView):
     """
-    Support-only API View for changing learner enrollments by support
-    staff
+    Support-only API View for creating and changing learner enrollments by support staff.
     """
     authentication_classes = (
         JwtAuthentication, SessionAuthentication
@@ -94,16 +89,28 @@ class LinkProgramEnrollmentSupportAPIView(GenericAPIView):
 
         * Example Request:
             - POST /support/link_program_enrollments_details/
+            * Sample Payload
+                {
+                    program_uuid: <program_uuid>,
+                    username_pair_text: 'external_user_key,lms_username'
+                }
+        * Example Response:
+            {
+                program_uuid: <program_uuid>,
+                username_pair_text: 'external_user_key,lms_username'
+                successes: 'Success messages if Linkages are created',
+                errors: 'Error messages if there is no linkages'
+            }
         """
 
         program_uuid = request.POST.get('program_uuid', '').strip()
-        text = request.POST.get('text', '')
-        successes, errors = program_enrollments_validate_and_link(program_uuid, text)
+        username_pair_text = request.POST.get('username_pair_text', '')
+        successes, errors = program_enrollments_validate_and_link(program_uuid, username_pair_text)
         data = {
             'successes': successes,
             'errors': errors,
             'program_uuid': program_uuid,
-            'text': text,
+            'username_pair_text': username_pair_text,
         }
         return Response(data)
 
